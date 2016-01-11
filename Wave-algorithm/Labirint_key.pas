@@ -58,7 +58,7 @@ BEGIN {READING}
       BorderY := BorderY + 1
     END; {READ}
   CLOSE(F2);
-  BorderX := SaveX - 1;
+  BorderX := SaveX - 1;{йнллемр}
   BorderY := BorderY - 2;
   RETURN 0  
 END; {READING}
