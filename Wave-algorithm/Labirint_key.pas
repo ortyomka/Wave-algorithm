@@ -5,67 +5,111 @@ VAR
   A: ARRAY [0 .. S, 0 .. S] OF INTEGER; {Iannea aey ia?aaioee}
   B: ARRAY [0 .. S, 0 .. S] OF CHAR; {Iannea aey auaiaa}
 
-FUNCTION Reading():INTEGER; {?oaiea}
+PROCEDURE CheckSize;
 VAR
-  F2: TEXT;
+  F: TEXT;
+BEGIN
+  ASSIGN(F, 'LABIRINT.TXT');
+  RESET(F);
+  READ(F, B[0, 0]);
+  WHILE (B[0, 0] = '#') AND (NOT EOLN(F))
+  DO
+    BEGIN
+      READ(F, B[0, 0]);
+      IF B[0, 0] = '#'
+      THEN
+        INC(BorderX)
+    END; 
+  B[0, 0] := '#';
+  READLN(F);
+  WHILE (B[0, 0] = '#') AND (NOT EOF(F))
+  DO
+    BEGIN
+    READ(F, B[0, 0]);
+    READLN(F);
+    IF B[0, 0] = '#'
+    THEN
+      INC(BorderY)  
+    END; 
+  CLOSE(F)  
+END;
+PROCEDURE Reading; {?oaiea}
+VAR
+  F2: TEXT;                                                   
   SaveX: INTEGER;
+  Ch: CHAR;
 BEGIN {READING}
   ASSIGN(F2, 'LABIRINT.TXT');
-  RESET(F2);
-  StartY := -1;
-  BorderY := 0;
+  RESET(F2);   
+  StartY := 0;
+  StartX := 0;
+  Y := 0;
   WHILE NOT EOF(F2)
   DO
     BEGIN
-      BorderX := 0;
+      X := 0;
       WHILE NOT EOLN(F2)
       DO
         BEGIN
-          READ(F2, B[BorderX, BorderY]);
-          IF (B[BorderX, BorderY] = '*') {Iacia?aiea ia?aeuiiai e eiia?iiai cia?aiey}
+          READ(F2, B[X, Y]);
+          IF (B[X, Y] = '*') {Iacia?aiea ia?aeuiiai e eiia?iiai cia?aiey}
           THEN
             BEGIN
-              IF StartY = -1 {Ia?aeuiia cia?aiea}
+              IF (StartY = 0) AND (StartX = 0) {Ia?aeuiia cia?aiea}
               THEN
                 BEGIN
-                  StartX := BorderX;
-                  StartY := BorderY;
+                  StartX := X;
+                  StartY := Y;
                   A[StartX, StartY] := 1;
-                  FinishX := BorderX;
-                  FinishY := BorderY;
+                  FinishX := X;
+                  FinishY := Y;
                   B[StartX, StartY] := 'O'
                 END {Ia?aeuiia cia?aiea}
               ELSE
-                BEGIN {Eiia?iia cia?aiea}
-                  FinishX := BorderX;
-                  FinishY := BorderY;
-                  B[FinishX, FinishY] := 'O'
-                END {Eiia?iia cia?aiea}
+                IF (FinishX = StartX) AND (FinishY = StartY)
+                THEN
+                  BEGIN {Eiia?iia cia?aiea}
+                    FinishX := X;
+                    FinishY := Y;
+                    B[FinishX, FinishY] := 'O'
+                  END {Eiia?iia cia?aiea}
+                ELSE
+                  CheckRoad := 3;  
             END; {Iacia?aiea ia?aeuiiai e eiia?iiai cia?aiey}         
-          IF B[BorderX, BorderY] = '#' {i?iaa?ea ia noaiee} 
+          IF B[X, Y] = '#' {i?iaa?ea ia noaiee} 
           THEN
-            A[BorderX, BorderY] := -1
+            A[X, Y] := -1
           ELSE {i?iaa?ea ia noaiee}
-            IF B[BorderX, BorderY] = ' ' {i?iaa?ea ia ionoia ianoi}
+            IF B[X, Y] = ' ' {i?iaa?ea ia ionoia ianoi}
             THEN
-              A[BorderX, BorderY] := 0; {i?iaa?ea ia ionoia ianoi}
-          BorderX := BorderX + 1;
-          IF SaveX < BorderX
+              A[X, Y] := 0; {i?iaa?ea ia ionoia ianoi}
+          IF ((X > BorderX) OR (Y > BorderY)) AND (B[X, Y] <> ' ')
           THEN
-            SaveX := BorderX    
+            CheckRoad := 3;
+          IF Y = BorderY
+          THEN
+            IF (B[X, BorderY] <> '#') AND (X <= BorderX)
+            THEN
+              CheckRoad := 3;      
+          X := X + 1;    
         END;  
       READLN(F2);
-      BorderY := BorderY + 1
+      IF (B[BorderX, Y] <> '#') AND (Y <= BorderY)
+      THEN
+        CheckRoad := 3;  
+      Y := Y + 1
     END; {READ}
-  CLOSE(F2);
-  BorderX := SaveX - 1;{EIIIAIO}
-  BorderY := BorderY - 1;
-  RETURN 0  
+    IF ((StartX = 0) AND (StartY = 0)) OR ((FinishX = StartX) AND (FinishY = StartY))
+    THEN
+      CheckRoad := 3;
+  CLOSE(F2); 
 END; {READING}
 
 FUNCTION WAVES(CountSteps: INTEGER): INTEGER;
 BEGIN {WAVES}
-  CheckRoad := 1;
+  IF CheckRoad <> 3 
+  THEN
+    CheckRoad := 1;
   WHILE (A[FinishX, FinishY] = 0) AND (CheckRoad = 1) {WAVES}
   DO
     BEGIN
@@ -203,24 +247,30 @@ BEGIN
   THEN
     WRITELN(F1, 'Shortest way is ', Steps) {Anee ioou eiaaony}
   ELSE
-    WRITELN(F1, 'There is no way!!!'); {Anee e eiioo iao ai?ae} 
-  FOR Y := 0 TO BorderY {Ia?ou ?acoeuoaoa}
-  DO
-    BEGIN
-      FOR X := 0 TO BorderX
-      DO
-        BEGIN             
-          WRITE(F1, B[X, Y])  
-        END;
-      WRITELN(F1) 
-    END; {Ia?ou ?acoeuoaoa}
+    IF CheckRoad = 0
+    THEN
+      WRITELN(F1, 'There is no way!!!') {Anee e eiioo iao ai?ae} 
+    ELSE
+      WRITE(F1, 'ERROR');
+  IF CheckRoad <> 3 
+  THEN      
+    FOR Y := 0 TO BorderY {Ia?ou ?acoeuoaoa}
+    DO
+      BEGIN
+        FOR X := 0 TO BorderX
+        DO
+          BEGIN             
+            WRITE(F1, B[X, Y])  
+          END;
+        WRITELN(F1) 
+      END; {Ia?ou ?acoeuoaoa}
   CLOSE(F1);
   RETURN 0     
 END;
  
 BEGIN
+  CheckSize;
   Reading();{?OAIEA}
   Way();{IINO?IAIIEA IEIEIAEUIIAI IOOE}
   Print(){AUAIA ?ACOEUOAOA}
 END.
-
