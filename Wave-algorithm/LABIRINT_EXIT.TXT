@@ -1,6 +1,6 @@
-Shortest way is 16
+Shortest way is 14
 ##############
-##O#**O      #
+##O#O        #
 # *#*        #
 ##*#*        #
 # *#*        #
