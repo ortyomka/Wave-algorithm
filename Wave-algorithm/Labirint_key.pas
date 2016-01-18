@@ -1,44 +1,38 @@
 PROGRAM Way(INPUT, OUTPUT);
 CONST S = 1001;
 VAR 
-  StartX, StartY, FinishX, FinishY, WindowY, WindowX, SizeX, SizeY, Status, Steps: INTEGER;
+  StartX, StartY, FinishX, FinishY, WindowY, WindowX, SizeX, SizeY, Steps: INTEGER;
+  Status: BYTE; {0 - No way, 1 - Labyrinth have way, 3 - ERROR}
   Digit: ARRAY [0 .. S, 0 .. S] OF INTEGER; {Array for processing}
   Symbol: ARRAY [0 .. S, 0 .. S] OF CHAR; {Array for save results}
-
-PROCEDURE CheckSize;
-VAR
-  F: TEXT;
-BEGIN {WAY}
-  ASSIGN(F, 'LABIRINT.TXT');
-  RESET(F);
-  READ(F, Symbol[0, 0]);{INSTAL SizeX}
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(F))
-  DO
-    BEGIN
-      READ(F, Symbol[0, 0]);
-      IF Symbol[0, 0] = '#'
-      THEN
-        INC(SizeX)
-    END;{INSTAL SizeX} 
-  Symbol[0, 0] := '#';{INSTAL SizeY}
-  READLN(F);
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(F))
-  DO
-    BEGIN
-      READ(F, Symbol[0, 0]);
-      READLN(F);
-      IF Symbol[0, 0] = '#'
-      THEN
-        INC(SizeY)  
-    END;{INSTAL SizeY} 
-  CLOSE(F)  
-END;
+  
 PROCEDURE Reading; {READING}
 VAR
   F2: TEXT;                                                   
 BEGIN {READ FILE}
   ASSIGN(F2, 'LABIRINT.TXT');
-  RESET(F2);   
+  RESET(F2);
+  READ(F2, Symbol[0, 0]); {INSTAL SizeX}
+  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(F2))
+  DO
+    BEGIN
+      READ(F2, Symbol[0, 0]);
+      IF Symbol[0, 0] = '#'
+      THEN
+        INC(SizeX)
+    END; {INSTAL SizeX} 
+  Symbol[0, 0] := '#'; {INSTAL SizeY}
+  READLN(F2);
+  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(F2))
+  DO
+    BEGIN
+      READ(F2, Symbol[0, 0]);
+      READLN(F2);
+      IF Symbol[0, 0] = '#'
+      THEN
+        INC(SizeY)  
+    END; {INSTAL SizeY}
+  RESET(F2);  
   StartY := 0;
   StartX := 0;
   WindowY := 0;
@@ -72,7 +66,7 @@ BEGIN {READ FILE}
                     Symbol[FinishX, FinishY] := 'O'
                   END {Specify finish}
                 ELSE
-                  Status := 3;{ERROR}  
+                  Status := 3; {ERROR}  
             END; {Specify start and finish}         
           IF Symbol[WindowX, WindowY] = '#' {Indicates walls} 
           THEN
@@ -81,20 +75,20 @@ BEGIN {READ FILE}
             IF Symbol[WindowX, WindowY] = ' ' {Indicates spaces}
             THEN
               Digit[WindowX, WindowY] := 0; {Indicates spaces}
-          IF ((WindowX > SizeX) OR (WindowY > SizeY)) AND (Symbol[WindowX, WindowY] <> ' '){CHECK FRAME}
+          IF ((WindowX > SizeX) OR (WindowY > SizeY)) AND (Symbol[WindowX, WindowY] <> ' ') {CHECK FRAME}
           THEN
-            Status := 3;{CHECK FRAME}
+            Status := 3; {CHECK FRAME}
           IF WindowY = SizeY {Check INTEGRITY BOX IN WindowX}
           THEN
             IF (Symbol[WindowX, SizeY] <> '#') AND (WindowX <= SizeX)
             THEN
-              Status := 3;{Check INTEGRITY BOX IN WindowX}      
+              Status := 3; {Check INTEGRITY BOX IN WindowX}      
           INC(WindowX)    
         END;  
       READLN(F2);
       IF (Symbol[SizeX, WindowY] <> '#') AND (WindowY <= SizeY) {Check INTEGRITY BOX IN WindowY}
       THEN
-        Status := 3;{Check INTEGRITY BOX IN WindowX}  
+        Status := 3; {Check INTEGRITY BOX IN WindowX}  
       INC(WindowY)
     END; {READ FILE}
     IF ((StartX = 0) AND (StartY = 0)) OR ((FinishX = StartX) AND (FinishY = StartY))
@@ -200,7 +194,7 @@ BEGIN {WAY}
             WHILE (Symbol[StartX, StartY] = 'O') AND (CountSteps >= 0)
             DO
               BEGIN
-                CountSteps := CountSteps - 1;
+                DEC(CountSteps);
                 IF Digit[WayX + 1, WayY] = CountSteps {Check the box next and build the way}
                 THEN
                   BEGIN
@@ -231,7 +225,7 @@ BEGIN {WAY}
               END
         END      
     END;   
-END;{WAY} 
+END; {WAY} 
 
 PROCEDURE Print;
 VAR
@@ -263,7 +257,6 @@ BEGIN
 END;
  
 BEGIN
-  CheckSize;
   Reading;
   SearchWay;
   Print
