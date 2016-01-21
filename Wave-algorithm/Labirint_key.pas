@@ -172,7 +172,7 @@ BEGIN {WAY}
             BEGIN
               Symbol[FinishX + 1, FinishY] := '*'; {Check Right}
               WayX := WayCoordinates(FinishX, 1); {Setting coordinate beginning of the path}
-              WayY := WayCoordinates(FinishY, 0)
+              WayY := FinishY
             END
           ELSE  
             IF Digit[FinishX - 1, FinishY] = CountSteps 
@@ -180,14 +180,14 @@ BEGIN {WAY}
               BEGIN
                 Symbol[FinishX - 1, FinishY] := '*'; {Check Left}
                 WayX := WayCoordinates(FinishX, -1); {Setting coordinate beginning of the path}
-                WayY := WayCoordinates(FinishY, 0) 
+                WayY := FinishY 
               END
             ELSE
               IF Digit[FinishX, FinishY + 1] = CountSteps 
               THEN
                 BEGIN
                   Symbol[FinishX, FinishY + 1] := '*'; {Check Down}
-                  WayX := WayCoordinates(FinishX, 0); {Setting coordinate beginning of the path}
+                  WayX := FinishX; {Setting coordinate beginning of the path}
                   WayY := WayCoordinates(FinishY, 1)
                 END
               ELSE
@@ -195,7 +195,7 @@ BEGIN {WAY}
                 THEN
                   BEGIN
                     Symbol[FinishX, FinishY - 1] := '*'; {Check Up}
-                    WayX := WayCoordinates(FinishX, 0); {Setting coordinate beginning of the path}
+                    WayX := FinishX; {Setting coordinate beginning of the path}
                     WayY := WayCoordinates(FinishY, -1)
                   END;
             WHILE (Symbol[StartX, StartY] = 'O') AND (CountSteps >= 0)
