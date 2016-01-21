@@ -2,48 +2,48 @@ PROGRAM Way(INPUT, OUTPUT);
 CONST S = 1001;
 VAR 
   StartX, StartY, FinishX, FinishY, WindowY, WindowX, SizeX, SizeY, Steps: INTEGER;
-  Status: BYTE; {0 - No way, 1 - Labyrinth have way, 3 - ERROR}
+  statusWay: BYTE; {0 - No way, 1 - Labyrinth have way, 3 - ERROR}
   Digit: ARRAY [0 .. S, 0 .. S] OF INTEGER; {Array for processing}
   Symbol: ARRAY [0 .. S, 0 .. S] OF CHAR; {Array for save results}
   
 PROCEDURE Reading; {READING}
 VAR
-  F2: TEXT;                                                   
+  fileWithLabyrinth: TEXT;                                                   
 BEGIN {READ FILE}
-  ASSIGN(F2, 'LABIRINT.TXT');
-  RESET(F2);
-  READ(F2, Symbol[0, 0]); {INSTAL SizeX}
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(F2))
+  ASSIGN(fileWithLabyrinth, 'LABIRINT.TXT');
+  RESET(fileWithLabyrinth);
+  READ(fileWithLabyrinth, Symbol[0, 0]); {INSTAL SizeX}
+  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(fileWithLabyrinth))
   DO
     BEGIN
-      READ(F2, Symbol[0, 0]);
+      READ(fileWithLabyrinth, Symbol[0, 0]);
       IF Symbol[0, 0] = '#'
       THEN
         INC(SizeX)
     END; {INSTAL SizeX} 
   Symbol[0, 0] := '#'; {INSTAL SizeY}
-  READLN(F2);
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(F2))
+  READLN(fileWithLabyrinth);
+  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(fileWithLabyrinth))
   DO
     BEGIN
-      READ(F2, Symbol[0, 0]);
-      READLN(F2);
+      READ(fileWithLabyrinth, Symbol[0, 0]);
+      READLN(fileWithLabyrinth);
       IF Symbol[0, 0] = '#'
       THEN
         INC(SizeY)  
     END; {INSTAL SizeY}
-  RESET(F2);  
+  RESET(fileWithLabyrinth);  
   StartY := 0;
   StartX := 0;
   WindowY := 0;
-  WHILE NOT EOF(F2)
+  WHILE NOT EOF(fileWithLabyrinth)
   DO
     BEGIN
       WindowX := 0;
-      WHILE NOT EOLN(F2)
+      WHILE NOT EOLN(fileWithLabyrinth)
       DO
         BEGIN
-          READ(F2, Symbol[WindowX, WindowY]);
+          READ(fileWithLabyrinth, Symbol[WindowX, WindowY]);
           IF (Symbol[WindowX, WindowY] = '*') {Specify start and finish}
           THEN
             BEGIN
@@ -66,7 +66,7 @@ BEGIN {READ FILE}
                     Symbol[FinishX, FinishY] := 'O'
                   END {Specify finish}
                 ELSE
-                  Status := 3; {ERROR}  
+                  statusWay := 3; {ERROR}  
             END; {Specify start and finish}         
           IF Symbol[WindowX, WindowY] = '#' {Indicates walls} 
           THEN
@@ -77,35 +77,35 @@ BEGIN {READ FILE}
               Digit[WindowX, WindowY] := 0; {Indicates spaces}
           IF ((WindowX > SizeX) OR (WindowY > SizeY)) AND (Symbol[WindowX, WindowY] <> ' ') {CHECK FRAME}
           THEN
-            Status := 3; {CHECK FRAME}
+            statusWay := 3; {CHECK FRAME}
           IF WindowY = SizeY {Check INTEGRITY BOX IN WindowX}
           THEN
             IF (Symbol[WindowX, SizeY] <> '#') AND (WindowX <= SizeX)
             THEN
-              Status := 3; {Check INTEGRITY BOX IN WindowX}      
+              statusWay := 3; {Check INTEGRITY BOX IN WindowX}      
           INC(WindowX)    
         END;  
-      READLN(F2);
+      READLN(fileWithLabyrinth);
       IF (Symbol[SizeX, WindowY] <> '#') AND (WindowY <= SizeY) {Check INTEGRITY BOX IN WindowY}
       THEN
-        Status := 3; {Check INTEGRITY BOX IN WindowX}  
+        statusWay := 3; {Check INTEGRITY BOX IN WindowX}  
       INC(WindowY)
     END; {READ FILE}
-    IF ((StartX = 0) AND (StartY = 0)) OR ((FinishX = StartX) AND (FinishY = StartY))
-    THEN
-      Status := 3;
-  CLOSE(F2); 
+  IF ((StartX = 0) AND (StartY = 0)) OR ((FinishX = StartX) AND (FinishY = StartY))
+  THEN
+    statusWay := 3;
+  CLOSE(fileWithLabyrinth) 
 END; {READING}
 
 FUNCTION LetWaves(CountSteps: INTEGER): INTEGER;
 BEGIN {WAVES}
-  IF Status <> 3 
+  IF statusWay <> 3 
   THEN
-    Status := 1;
-  WHILE (Digit[FinishX, FinishY] = 0) AND (Status = 1) {WAVES}
+    statusWay := 1;
+  WHILE (Digit[FinishX, FinishY] = 0) AND (statusWay = 1) {WAVES}
   DO
     BEGIN
-      Status := 0; {Check for occupancy}
+      statusWay := 0; {Check for occupancy}
       FOR WindowY := 0 TO SizeY 
       DO
         BEGIN
@@ -119,25 +119,25 @@ BEGIN {WAVES}
                   THEN
                     BEGIN                
                       Digit[WindowX + 1, WindowY] := CountSteps; {Right}
-                      Status := 1
+                      statusWay := 1
                     END;
                   IF Digit[WindowX - 1, WindowY] = 0
                   THEN
                     BEGIN
                       Digit[WindowX - 1, WindowY] := CountSteps; {Left}
-                      Status := 1
+                      statusWay := 1
                     END;
                   IF Digit[WindowX, WindowY + 1] = 0
                   THEN
                     BEGIN
                       Digit[WindowX, WindowY + 1] := CountSteps; {Down}
-                      Status := 1
+                      statusWay := 1
                     END;
                   IF Digit[WindowX, WindowY - 1] = 0
                   THEN
                     BEGIN
                       Digit[WindowX, WindowY - 1] := CountSteps; {Up}
-                      Status := 1
+                      statusWay := 1
                     END {Wave propagation} 
                 END  
             END
@@ -149,12 +149,19 @@ BEGIN {WAVES}
   RETURN(CountSteps)
 END; {WAVES}
  
+FUNCTION WayCoordinates(Summand, DigitX: INTEGER): INTEGER;
+VAR 
+  Sum: INTEGER;
+BEGIN
+  Sum := Summand + DigitX;
+  RETURN(Sum)
+END;
 PROCEDURE SearchWay;
 VAR
   CountSteps, WayX, WayY: INTEGER;
 BEGIN {WAY}
   CountSteps := LetWaves(2);
-  IF Status = 1 {Checking for path}
+  IF statusWay = 1 {Checking for path}
   THEN
     BEGIN
       IF (StartX <> FinishX) OR (StartY <> FinishY)
@@ -164,32 +171,32 @@ BEGIN {WAY}
           THEN
             BEGIN
               Symbol[FinishX + 1, FinishY] := '*'; {Check Right}
-              WayX := FinishX + 1; {Setting coordinate beginning of the path}
-              WayY := FinishY 
+              WayX := WayCoordinates(FinishX, 1); {Setting coordinate beginning of the path}
+              WayY := WayCoordinates(FinishY, 0)
             END
           ELSE  
             IF Digit[FinishX - 1, FinishY] = CountSteps 
             THEN
               BEGIN
                 Symbol[FinishX - 1, FinishY] := '*'; {Check Left}
-                WayX := FinishX - 1; {Setting coordinate beginning of the path}
-                WayY := FinishY 
+                WayX := WayCoordinates(FinishX, -1); {Setting coordinate beginning of the path}
+                WayY := WayCoordinates(FinishY, 0) 
               END
             ELSE
               IF Digit[FinishX, FinishY + 1] = CountSteps 
               THEN
                 BEGIN
                   Symbol[FinishX, FinishY + 1] := '*'; {Check Down}
-                  WayX := FinishX; {Setting coordinate beginning of the path}
-                  WayY := FinishY + 1
+                  WayX := WayCoordinates(FinishX, 0); {Setting coordinate beginning of the path}
+                  WayY := WayCoordinates(FinishY, 1)
                 END
               ELSE
                 IF Digit[FinishX, FinishY - 1] = CountSteps 
                 THEN
                   BEGIN
                     Symbol[FinishX, FinishY - 1] := '*'; {Check Up}
-                    WayX := FinishX; {Setting coordinate beginning of the path}
-                    WayY := FinishY - 1
+                    WayX := WayCoordinates(FinishX, 0); {Setting coordinate beginning of the path}
+                    WayY := WayCoordinates(FinishY, -1)
                   END;
             WHILE (Symbol[StartX, StartY] = 'O') AND (CountSteps >= 0)
             DO
@@ -229,35 +236,35 @@ END; {WAY}
 
 PROCEDURE Print;
 VAR
-  F1: TEXT;
+  fileWithExit: TEXT;
 BEGIN
-  ASSIGN(F1, 'LABIRINT_EXIT.TXT');
-  REWRITE(F1);
+  ASSIGN(fileWithExit, 'LABIRINT_EXIT.TXT');
+  REWRITE(fileWithExit);
   Symbol[StartX, StartY] := 'O'; 
-  IF Status = 1 
+  IF statusWay = 1 
   THEN
-    WRITELN(F1, 'Shortest way is ', Steps) {If there is Digit the way}
+    WRITELN(fileWithExit, 'Shortest way is ', Steps) {If there is Digit the way}
   ELSE
-    IF Status = 0
+    IF statusWay = 0
     THEN
-      WRITELN(F1, 'There is no way!!!') {If at the end there is no way} 
+      WRITELN(fileWithExit, 'There is no way!!!') {If at the end there is no way} 
     ELSE
-      WRITE(F1, 'ERROR'); {If the data is not correct}
-  IF Status <> 3 
+      WRITE(fileWithExit, 'ERROR'); {If the data is not correct}
+  IF statusWay <> 3 
   THEN      
     FOR WindowY := 0 TO SizeY {Print Result}
     DO
       BEGIN
         FOR WindowX := 0 TO SizeX
         DO             
-          WRITE(F1, Symbol[WindowX, WindowY]);  
-        WRITELN(F1) 
+          WRITE(fileWithExit, Symbol[WindowX, WindowY]);  
+        WRITELN(fileWithExit) 
       END; {Print Result}
-  CLOSE(F1)     
+  CLOSE(fileWithExit)     
 END;
  
 BEGIN
-  Reading;
+  Reading;     
   SearchWay;
   Print
 END. {WAY}
