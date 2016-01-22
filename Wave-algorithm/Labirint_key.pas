@@ -149,16 +149,18 @@ BEGIN {WAVES}
   RETURN(CountSteps)
 END; {WAVES}
  
-FUNCTION WayCoordinates(Summand, DigitX: INTEGER): INTEGER;
+PROCEDURE SearchWay;
+VAR
+  CountSteps, WayX, WayY: INTEGER;
+FUNCTION WayCoordinates(Summand, DigitX, secondCoordinate, finishCoordinate: INTEGER): INTEGER;
 VAR 
   Sum: INTEGER;
 BEGIN
   Sum := Summand + DigitX;
+  WayX := FinishX;
+  WayY := FinishY;
   RETURN(Sum)
-END;
-PROCEDURE SearchWay;
-VAR
-  CountSteps, WayX, WayY: INTEGER;
+END;  
 BEGIN {WAY}
   CountSteps := LetWaves(2);
   IF statusWay = 1 {Checking for path}
@@ -171,33 +173,29 @@ BEGIN {WAY}
           THEN
             BEGIN
               Symbol[FinishX + 1, FinishY] := '*'; {Check Right}
-              WayX := WayCoordinates(FinishX, 1); {Setting coordinate beginning of the path}
-              WayY := FinishY
+              WayX := WayCoordinates(FinishX, 1, WayY, FinishY) {Setting coordinate beginning of the path}
             END
           ELSE  
             IF Digit[FinishX - 1, FinishY] = CountSteps 
             THEN
               BEGIN
                 Symbol[FinishX - 1, FinishY] := '*'; {Check Left}
-                WayX := WayCoordinates(FinishX, -1); {Setting coordinate beginning of the path}
-                WayY := FinishY 
+                WayX := WayCoordinates(FinishX, -1, WayY, FinishY) {Setting coordinate beginning of the path} 
               END
             ELSE
               IF Digit[FinishX, FinishY + 1] = CountSteps 
               THEN
                 BEGIN
                   Symbol[FinishX, FinishY + 1] := '*'; {Check Down}
-                  WayX := FinishX; {Setting coordinate beginning of the path}
-                  WayY := WayCoordinates(FinishY, 1)
+                  WayY := WayCoordinates(FinishY, 1, WayX, FinishX) {Setting coordinate beginning of the path}
                 END
               ELSE
                 IF Digit[FinishX, FinishY - 1] = CountSteps 
                 THEN
                   BEGIN
                     Symbol[FinishX, FinishY - 1] := '*'; {Check Up}
-                    WayX := FinishX; {Setting coordinate beginning of the path}
-                    WayY := WayCoordinates(FinishY, -1)
-                  END;
+                    WayY := WayCoordinates(FinishY, -1, WayX, FinishX) {Setting coordinate beginning of the path}
+                  END;     
             WHILE (Symbol[StartX, StartY] = 'O') AND (CountSteps >= 0)
             DO
               BEGIN
