@@ -98,6 +98,8 @@ BEGIN {READ FILE}
 END; {READING}
 
 FUNCTION LetWaves(CountSteps: INTEGER): INTEGER;
+VAR
+  WindowY, WindowX: INTEGER;
 BEGIN {WAVES}
   IF statusWay <> 3 
   THEN
@@ -146,21 +148,19 @@ BEGIN {WAVES}
     END; {WAVES}
   CountSteps := CountSteps - 2; {Subtract movement at the beginning and at the end}
   Steps := CountSteps; {Save resault}
-  RETURN(CountSteps)
+  LetWaves := CountStepS
 END; {WAVES}
- 
-PROCEDURE SearchWay;
-VAR
-  CountSteps, WayX, WayY: INTEGER;
-FUNCTION WayCoordinates(Summand, DigitX, secondCoordinate, finishCoordinate: INTEGER): INTEGER;
+FUNCTION WayCoordinates(Summand, DigitX, finishCoordinate: INTEGER; secondCoordinate: ^INTEGER): INTEGER;
 VAR 
   Sum: INTEGER;
 BEGIN
   Sum := Summand + DigitX;
-  WayX := FinishX;
-  WayY := FinishY;
-  RETURN(Sum)
-END;  
+  secondCoordinate^ := finishCoordinate;
+  WayCoordinates := Sum
+END;
+PROCEDURE SearchWay;
+VAR
+  CountSteps, WayX, WayY: INTEGER;   
 BEGIN {WAY}
   CountSteps := LetWaves(2);
   IF statusWay = 1 {Checking for path}
@@ -173,28 +173,28 @@ BEGIN {WAY}
           THEN
             BEGIN
               Symbol[FinishX + 1, FinishY] := '*'; {Check Right}
-              WayX := WayCoordinates(FinishX, 1, WayY, FinishY) {Setting coordinate beginning of the path}
+              WayX := WayCoordinates(FinishX, 1, FinishY, @WayY) {Setting coordinate beginning of the path}
             END
           ELSE  
             IF Digit[FinishX - 1, FinishY] = CountSteps 
             THEN
               BEGIN
                 Symbol[FinishX - 1, FinishY] := '*'; {Check Left}
-                WayX := WayCoordinates(FinishX, -1, WayY, FinishY) {Setting coordinate beginning of the path} 
+                WayX := WayCoordinates(FinishX, -1, FinishY, @WayY) {Setting coordinate beginning of the path} 
               END
             ELSE
               IF Digit[FinishX, FinishY + 1] = CountSteps 
               THEN
                 BEGIN
                   Symbol[FinishX, FinishY + 1] := '*'; {Check Down}
-                  WayY := WayCoordinates(FinishY, 1, WayX, FinishX) {Setting coordinate beginning of the path}
+                  WayY := WayCoordinates(FinishY, 1, FinishX, @WayX) {Setting coordinate beginning of the path}
                 END
               ELSE
                 IF Digit[FinishX, FinishY - 1] = CountSteps 
                 THEN
                   BEGIN
                     Symbol[FinishX, FinishY - 1] := '*'; {Check Up}
-                    WayY := WayCoordinates(FinishY, -1, WayX, FinishX) {Setting coordinate beginning of the path}
+                    WayY := WayCoordinates(FinishY, -1, FinishX, @WayX) {Setting coordinate beginning of the path}
                   END;     
             WHILE (Symbol[StartX, StartY] = 'O') AND (CountSteps >= 0)
             DO
@@ -235,6 +235,7 @@ END; {WAY}
 PROCEDURE Print;
 VAR
   fileWithExit: TEXT;
+  WindowX, WindowY: INTEGER;
 BEGIN
   ASSIGN(fileWithExit, 'LABIRINT_EXIT.TXT');
   REWRITE(fileWithExit);
