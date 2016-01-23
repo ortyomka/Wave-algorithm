@@ -1,49 +1,50 @@
 PROGRAM Way(INPUT, OUTPUT);
 CONST S = 1001;
 VAR 
-  StartX, StartY, FinishX, FinishY, WindowY, WindowX, SizeX, SizeY, Steps: INTEGER;
+  StartX, StartY, FinishX, FinishY, SizeX, SizeY, Steps: INTEGER;
   statusWay: BYTE; {0 - No way, 1 - Labyrinth have way, 3 - ERROR}
   Digit: ARRAY [0 .. S, 0 .. S] OF INTEGER; {Array for processing}
   Symbol: ARRAY [0 .. S, 0 .. S] OF CHAR; {Array for save results}
   
 PROCEDURE Reading; {READING}
 VAR
-  fileWithLabyrinth: TEXT;                                                   
+  fileLabyrinth: TEXT;
+  WindowX, WindowY: INTEGER;  
 BEGIN {READ FILE}
-  ASSIGN(fileWithLabyrinth, 'LABIRINT.TXT');
-  RESET(fileWithLabyrinth);
-  READ(fileWithLabyrinth, Symbol[0, 0]); {INSTAL SizeX}
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(fileWithLabyrinth))
+  ASSIGN(fileLabyrinth, 'LABIRINT.TXT');
+  RESET(fileLabyrinth);
+  READ(fileLabyrinth, Symbol[0, 0]); {INSTAL SizeX}
+  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(fileLabyrinth))
   DO
     BEGIN
-      READ(fileWithLabyrinth, Symbol[0, 0]);
+      READ(fileLabyrinth, Symbol[0, 0]);
       IF Symbol[0, 0] = '#'
       THEN
         INC(SizeX)
     END; {INSTAL SizeX} 
   Symbol[0, 0] := '#'; {INSTAL SizeY}
-  READLN(fileWithLabyrinth);
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(fileWithLabyrinth))
+  READLN(fileLabyrinth);
+  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(fileLabyrinth))
   DO
     BEGIN
-      READ(fileWithLabyrinth, Symbol[0, 0]);
-      READLN(fileWithLabyrinth);
+      READ(fileLabyrinth, Symbol[0, 0]);
+      READLN(fileLabyrinth);
       IF Symbol[0, 0] = '#'
       THEN
         INC(SizeY)  
     END; {INSTAL SizeY}
-  RESET(fileWithLabyrinth);  
+  RESET(fileLabyrinth);  
   StartY := 0;
   StartX := 0;
   WindowY := 0;
-  WHILE NOT EOF(fileWithLabyrinth)
+  WHILE NOT EOF(fileLabyrinth)
   DO
     BEGIN
       WindowX := 0;
-      WHILE NOT EOLN(fileWithLabyrinth)
+      WHILE NOT EOLN(fileLabyrinth)
       DO
         BEGIN
-          READ(fileWithLabyrinth, Symbol[WindowX, WindowY]);
+          READ(fileLabyrinth, Symbol[WindowX, WindowY]);
           IF (Symbol[WindowX, WindowY] = '*') {Specify start and finish}
           THEN
             BEGIN
@@ -85,7 +86,7 @@ BEGIN {READ FILE}
               statusWay := 3; {Check INTEGRITY BOX IN WindowX}      
           INC(WindowX)    
         END;  
-      READLN(fileWithLabyrinth);
+      READLN(fileLabyrinth);
       IF (Symbol[SizeX, WindowY] <> '#') AND (WindowY <= SizeY) {Check INTEGRITY BOX IN WindowY}
       THEN
         statusWay := 3; {Check INTEGRITY BOX IN WindowX}  
@@ -94,7 +95,7 @@ BEGIN {READ FILE}
   IF ((StartX = 0) AND (StartY = 0)) OR ((FinishX = StartX) AND (FinishY = StartY))
   THEN
     statusWay := 3;
-  CLOSE(fileWithLabyrinth) 
+  CLOSE(fileLabyrinth) 
 END; {READING}
 
 FUNCTION LetWaves(CountSteps: INTEGER): INTEGER;
@@ -150,13 +151,11 @@ BEGIN {WAVES}
   Steps := CountSteps; {Save resault}
   LetWaves := CountStepS
 END; {WAVES}
-FUNCTION WayCoordinates(Summand, DigitX, finishCoordinate: INTEGER; secondCoordinate: ^INTEGER): INTEGER;
-VAR 
-  Sum: INTEGER;
+PROCEDURE firstWayCoordinates(firstFinishCoordinate, firstAddendum, secondFinishCoordinate, secondAddendum: INTEGER; firstCoordinate, secondCoordinate: ^INTEGER);
 BEGIN
-  Sum := Summand + DigitX;
-  secondCoordinate^ := finishCoordinate;
-  WayCoordinates := Sum
+  firstCoordinate^ := firstFinishCoordinate + firstAddendum;
+  secondCoordinate^ := secondFinishCoordinate + secondAddendum;
+  Symbol[firstCoordinate^, secondCoordinate^] := '*'
 END;
 PROCEDURE SearchWay;
 VAR
@@ -171,62 +170,38 @@ BEGIN {WAY}
         BEGIN
           IF Digit[FinishX + 1, FinishY] = CountSteps {Check the box next and sets the first coordinate}
           THEN
-            BEGIN
-              Symbol[FinishX + 1, FinishY] := '*'; {Check Right}
-              WayX := WayCoordinates(FinishX, 1, FinishY, @WayY) {Setting coordinate beginning of the path}
-            END
+            firstWayCoordinates(FinishX, 1, FinishY, 0, @WayX, @WayY) {Setting coordinate beginning of the path}
           ELSE  
             IF Digit[FinishX - 1, FinishY] = CountSteps 
             THEN
-              BEGIN
-                Symbol[FinishX - 1, FinishY] := '*'; {Check Left}
-                WayX := WayCoordinates(FinishX, -1, FinishY, @WayY) {Setting coordinate beginning of the path} 
-              END
+              firstWayCoordinates(FinishX, -1, FinishY, 0, @WayX, @WayY) {Setting coordinate beginning of the path} 
             ELSE
               IF Digit[FinishX, FinishY + 1] = CountSteps 
               THEN
-                BEGIN
-                  Symbol[FinishX, FinishY + 1] := '*'; {Check Down}
-                  WayY := WayCoordinates(FinishY, 1, FinishX, @WayX) {Setting coordinate beginning of the path}
-                END
+                firstWayCoordinates(FinishX, 0, FinishY, 1, @WayX, @WayY) {Setting coordinate beginning of the path}
               ELSE
                 IF Digit[FinishX, FinishY - 1] = CountSteps 
                 THEN
-                  BEGIN
-                    Symbol[FinishX, FinishY - 1] := '*'; {Check Up}
-                    WayY := WayCoordinates(FinishY, -1, FinishX, @WayX) {Setting coordinate beginning of the path}
-                  END;     
+                  firstWayCoordinates(FinishX, 0, FinishY, -1, @WayX, @WayY);{Setting coordinate beginning of the path}     
             WHILE (Symbol[StartX, StartY] = 'O') AND (CountSteps >= 0)
             DO
               BEGIN
                 DEC(CountSteps);
                 IF Digit[WayX + 1, WayY] = CountSteps {Check the box next and build the way}
                 THEN
-                  BEGIN
-                    Symbol[WayX + 1, WayY] := '*'; {Check Right}
-                    INC(WayX)
-                  END
+                  firstWayCoordinates(WayX, 1, WayY, 0, @WayX, @WayY)
                 ELSE  
                   IF Digit[WayX - 1, WayY] = CountSteps 
                   THEN
-                    BEGIN
-                      Symbol[WayX - 1, WayY] := '*'; {Check Left}
-                      DEC(WayX)
-                    END
+                    firstWayCoordinates(WayX, -1, WayY, 0, @WayX, @WayY)
                   ELSE
                     IF Digit[WayX, WayY + 1] = CountSteps 
                     THEN
-                      BEGIN
-                        Symbol[WayX, WayY + 1] := '*'; {Check Down}
-                        INC(WayY)
-                      END
+                      firstWayCoordinates(WayX, 0, WayY, 1, @WayX, @WayY)
                     ELSE
                       IF Digit[WayX, WayY - 1] = CountSteps 
                       THEN
-                        BEGIN
-                          Symbol[WayX, WayY - 1] := '*'; {Check Up}
-                          DEC(WayY)
-                        END;     
+                        firstWayCoordinates(WayX, 0, WayY, -1, @WayX, @WayY)    
               END
         END      
     END;   
@@ -234,21 +209,21 @@ END; {WAY}
 
 PROCEDURE Print;
 VAR
-  fileWithExit: TEXT;
+  fileExit: TEXT;
   WindowX, WindowY: INTEGER;
 BEGIN
-  ASSIGN(fileWithExit, 'LABIRINT_EXIT.TXT');
-  REWRITE(fileWithExit);
+  ASSIGN(fileExit, 'LABIRINT_EXIT.TXT');
+  REWRITE(fileExit);
   Symbol[StartX, StartY] := 'O'; 
   IF statusWay = 1 
   THEN
-    WRITELN(fileWithExit, 'Shortest way is ', Steps) {If there is Digit the way}
+    WRITELN(fileExit, 'Shortest way is ', Steps) {If there is Digit the way}
   ELSE
     IF statusWay = 0
     THEN
-      WRITELN(fileWithExit, 'There is no way!!!') {If at the end there is no way} 
+      WRITELN(fileExit, 'There is no way!!!') {If at the end there is no way} 
     ELSE
-      WRITE(fileWithExit, 'ERROR'); {If the data is not correct}
+      WRITE(fileExit, 'ERROR'); {If the data is not correct}
   IF statusWay <> 3 
   THEN      
     FOR WindowY := 0 TO SizeY {Print Result}
@@ -256,10 +231,10 @@ BEGIN
       BEGIN
         FOR WindowX := 0 TO SizeX
         DO             
-          WRITE(fileWithExit, Symbol[WindowX, WindowY]);  
-        WRITELN(fileWithExit) 
+          WRITE(fileExit, Symbol[WindowX, WindowY]);  
+        WRITELN(fileExit) 
       END; {Print Result}
-  CLOSE(fileWithExit)     
+  CLOSE(fileExit)     
 END;
  
 BEGIN
