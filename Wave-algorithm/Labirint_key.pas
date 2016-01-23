@@ -98,6 +98,12 @@ BEGIN {READ FILE}
   CLOSE(fileLabyrinth) 
 END; {READING}
 
+PROCEDURE fillingArray(firstCoordinate, secondCoordinate, stepNumber: INTEGER);
+BEGIN
+  Digit[firstCoordinate, secondCoordinate] := stepNumber;
+  statusWay := 1
+END;
+
 FUNCTION LetWaves(CountSteps: INTEGER): INTEGER;
 VAR
   WindowY, WindowX: INTEGER;
@@ -119,29 +125,17 @@ BEGIN {WAVES}
               THEN
                 BEGIN
                   IF Digit[WindowX + 1, WindowY] = 0 {Wave propagation}
-                  THEN
-                    BEGIN                
-                      Digit[WindowX + 1, WindowY] := CountSteps; {Right}
-                      statusWay := 1
-                    END;
+                  THEN                
+                    fillingArray(WindowX + 1, WindowY, CountSteps); {Right}
                   IF Digit[WindowX - 1, WindowY] = 0
                   THEN
-                    BEGIN
-                      Digit[WindowX - 1, WindowY] := CountSteps; {Left}
-                      statusWay := 1
-                    END;
+                    fillingArray(WindowX - 1, WindowY, CountSteps);
                   IF Digit[WindowX, WindowY + 1] = 0
                   THEN
-                    BEGIN
-                      Digit[WindowX, WindowY + 1] := CountSteps; {Down}
-                      statusWay := 1
-                    END;
+                    fillingArray(WindowX, WindowY + 1, CountSteps);
                   IF Digit[WindowX, WindowY - 1] = 0
                   THEN
-                    BEGIN
-                      Digit[WindowX, WindowY - 1] := CountSteps; {Up}
-                      statusWay := 1
-                    END {Wave propagation} 
+                    fillingArray(WindowX, WindowY - 1, CountSteps){Wave propagation} 
                 END  
             END
         END;
@@ -151,12 +145,14 @@ BEGIN {WAVES}
   Steps := CountSteps; {Save resault}
   LetWaves := CountStepS
 END; {WAVES}
-PROCEDURE firstWayCoordinates(firstFinishCoordinate, firstAddendum, secondFinishCoordinate, secondAddendum: INTEGER; firstCoordinate, secondCoordinate: ^INTEGER);
+
+PROCEDURE firstWayCoordinates(firstFinishCoordinate, secondFinishCoordinate: INTEGER; firstCoordinate, secondCoordinate: ^INTEGER);
 BEGIN
-  firstCoordinate^ := firstFinishCoordinate + firstAddendum;
-  secondCoordinate^ := secondFinishCoordinate + secondAddendum;
+  firstCoordinate^ := firstFinishCoordinate;
+  secondCoordinate^ := secondFinishCoordinate;
   Symbol[firstCoordinate^, secondCoordinate^] := '*'
 END;
+
 PROCEDURE SearchWay;
 VAR
   CountSteps, WayX, WayY: INTEGER;   
@@ -170,38 +166,38 @@ BEGIN {WAY}
         BEGIN
           IF Digit[FinishX + 1, FinishY] = CountSteps {Check the box next and sets the first coordinate}
           THEN
-            firstWayCoordinates(FinishX, 1, FinishY, 0, @WayX, @WayY) {Setting coordinate beginning of the path}
+            firstWayCoordinates(FinishX + 1, FinishY, @WayX, @WayY) {Setting coordinate beginning of the path}
           ELSE  
             IF Digit[FinishX - 1, FinishY] = CountSteps 
             THEN
-              firstWayCoordinates(FinishX, -1, FinishY, 0, @WayX, @WayY) {Setting coordinate beginning of the path} 
+              firstWayCoordinates(FinishX - 1, FinishY, @WayX, @WayY) {Setting coordinate beginning of the path} 
             ELSE
               IF Digit[FinishX, FinishY + 1] = CountSteps 
               THEN
-                firstWayCoordinates(FinishX, 0, FinishY, 1, @WayX, @WayY) {Setting coordinate beginning of the path}
+                firstWayCoordinates(FinishX, FinishY + 1, @WayX, @WayY) {Setting coordinate beginning of the path}
               ELSE
                 IF Digit[FinishX, FinishY - 1] = CountSteps 
                 THEN
-                  firstWayCoordinates(FinishX, 0, FinishY, -1, @WayX, @WayY);{Setting coordinate beginning of the path}     
+                  firstWayCoordinates(FinishX, FinishY - 1, @WayX, @WayY);{Setting coordinate beginning of the path}     
             WHILE (Symbol[StartX, StartY] = 'O') AND (CountSteps >= 0)
             DO
               BEGIN
                 DEC(CountSteps);
                 IF Digit[WayX + 1, WayY] = CountSteps {Check the box next and build the way}
                 THEN
-                  firstWayCoordinates(WayX, 1, WayY, 0, @WayX, @WayY)
+                  firstWayCoordinates(WayX + 1, WayY, @WayX, @WayY)
                 ELSE  
                   IF Digit[WayX - 1, WayY] = CountSteps 
                   THEN
-                    firstWayCoordinates(WayX, -1, WayY, 0, @WayX, @WayY)
+                    firstWayCoordinates(WayX - 1, WayY, @WayX, @WayY)
                   ELSE
                     IF Digit[WayX, WayY + 1] = CountSteps 
                     THEN
-                      firstWayCoordinates(WayX, 0, WayY, 1, @WayX, @WayY)
+                      firstWayCoordinates(WayX, WayY + 1, @WayX, @WayY)
                     ELSE
                       IF Digit[WayX, WayY - 1] = CountSteps 
                       THEN
-                        firstWayCoordinates(WayX, 0, WayY, -1, @WayX, @WayY)    
+                        firstWayCoordinates(WayX, WayY - 1, @WayX, @WayY)    
               END
         END      
     END;   
