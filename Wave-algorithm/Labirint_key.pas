@@ -203,17 +203,11 @@ BEGIN {WAY}
     END;   
 END; {WAY} 
 
-PROCEDURE Draw(cellWidth, cellHeight: ^INTEGER);
+PROCEDURE Draw(cellHeight: ^INTEGER);
 VAR
   borderNumber: INTEGER;
 BEGIN
-  cellWidth^ := (SCREENHEIGHT DIV 2) DIV (sizeX + 1);
   cellHeight^ := (SCREENHEIGHT DIV 2) DIV (sizeY + 1);
-  IF cellWidth^ < cellHeight^
-  THEN
-    cellHeight^ := cellWidth^
-  ELSE
-    cellWidth^ := cellHeight^;
   SETWINDOWTOP(0);
   SETWINDOWLEFT(0);
   SETWINDOWSIZE(cellHeight^ * (sizeX + 1), cellHeight^ * (sizeY + 1));
@@ -223,26 +217,26 @@ BEGIN
     LINE(0, cellHeight^ * borderNumber, WINDOWWIDTH, cellHeight^ * borderNumber);
   FOR borderNumber := 0 TO (sizeX + 1)
   DO
-    LINE(cellWidth^ * borderNumber, 0, cellWidth^ * borderNumber, WINDOWHEIGHT)
+    LINE(cellHeight^ * borderNumber, 0, cellHeight^ * borderNumber, WINDOWHEIGHT)
 END;
 
 PROCEDURE Print;
 VAR
-  WindowX, WindowY, widthCell, heightCell: INTEGER;
+  WindowX, WindowY, heightCell: INTEGER;
 BEGIN
   Symbol[StartX, StartY] := 'O'; 
   IF statusWay < 2 
   THEN
     BEGIN
-      Draw(@widthCell, @heightCell);
+      Draw(@heightCell);
       FOR WindowY := 0 TO SizeY {Print Result}
       DO
         FOR WindowX := 0 TO SizeX
         DO
           CASE Symbol[WindowX, WindowY] OF
-            '#': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLBLACK);
-            'O': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLORANGE);
-            '*': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLRED)
+            '#': FLOODFILL(heightCell DIV 2 + heightCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLBLACK);
+            'O': FLOODFILL(heightCell DIV 2 + heightCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLORANGE);
+            '*': FLOODFILL(heightCell DIV 2 + heightCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLRED)
           END; {Print Result}
     END
   ELSE
