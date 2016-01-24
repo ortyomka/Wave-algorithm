@@ -1,10 +1,10 @@
-В файл LABIRINT.txt вводшь лабиринт.
-Обозначения:
-'#' - стенка;
-' ' - свободное пространство
-'*' - Начальная/ конечная точка
+In file LABIRINT.txt you enter the maze.
+Designations:
+'#' - wall;
+' ' - space;
+'*' - start and finish;
 
-Пример LABIRINT.txt:
+Example LABIRINT.txt:
 
 ##########
 #    ## ##
@@ -17,15 +17,15 @@
 ### *#* ##
 ##########
 
-У вас на экране появится отрисовка лабиринта, который записан в LABIRINT.txt:
-Желтая клетка - это начало или конец
-Крассная клетка - ваш маршрут
+You have to display the drawing of the labyrinth , which is recorded in LABIRINT.txt:
+Yellow cells - this is the beginning or the end of
+red cell - your route
 
-Ввыходной файл - LABIRINT_EXIT.TXT
+Output file- LABIRINT_EXIT.TXT
 
-Пример:
+Example:
 
-МИНИМАЛЬНЫЙ ПУТЬ РАВЕН 20
+Shortest way is 20
 ##########
 #    ## ##
 # ******##
@@ -38,9 +38,8 @@
 ##########
 
 
-Обозначения:
-'#' - стенка;
-' ' - свободное пространство;
-'O' - начальная/ конечная точка;
-'*' - минимальный путь
-
+Designations:
+'#' - wall;
+' ' - space;
+'O' - start and finish;
+'*' - Shortest way;
