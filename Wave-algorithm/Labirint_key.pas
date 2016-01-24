@@ -216,7 +216,8 @@ BEGIN
     cellWidth^ := cellHeight^;
   SETWINDOWTOP(0);
   SETWINDOWLEFT(0);
-  SETWINDOWSIZE(cellHeight^ * (sizeX + 1), cellHeight^ * (sizeY + 1));  
+  SETWINDOWSIZE(cellHeight^ * (sizeX + 1), cellHeight^ * (sizeY + 1));
+  WINDOW.IsFixedSize := true;
   FOR borderNumber := 0 TO (sizeY + 1)
   DO
     LINE(0, cellHeight^ * borderNumber, WINDOWWIDTH, cellHeight^ * borderNumber);
