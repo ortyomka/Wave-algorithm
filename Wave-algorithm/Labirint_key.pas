@@ -207,18 +207,16 @@ PROCEDURE Draw(cellWidth, cellHeight: ^INTEGER);
 VAR
   borderNumber: INTEGER;
 BEGIN
-  MAXIMIZEWINDOW;
-  cellWidth^ := WINDOWWIDTH DIV (sizeX + 1);
-  cellHeight^ := WINDOWHEIGHT DIV (sizeY + 1);
+  cellWidth^ := (SCREENHEIGHT DIV 2) DIV (sizeX + 1);
+  cellHeight^ := (SCREENHEIGHT DIV 2) DIV (sizeY + 1);
   IF cellWidth^ < cellHeight^
   THEN
     cellHeight^ := cellWidth^
   ELSE
     cellWidth^ := cellHeight^;
-  NORMALIZEWINDOW;
   SETWINDOWTOP(0);
   SETWINDOWLEFT(0);
-  SETWINDOWSIZE(cellWidth^ * (sizeX + 1), cellHeight^ * (sizeY + 1));  
+  SETWINDOWSIZE(cellHeight^ * (sizeX + 1), cellHeight^ * (sizeY + 1));  
   FOR borderNumber := 0 TO (sizeY + 1)
   DO
     LINE(0, cellHeight^ * borderNumber, WINDOWWIDTH, cellHeight^ * borderNumber);
