@@ -68,7 +68,7 @@ BEGIN {READ FILE}
                     Symbol[FinishX, FinishY] := 'O'
                   END {Specify finish}
                 ELSE
-                  statusWay := 3; {ERROR}  
+                  statusWay := 2; {ERROR}  
             END; {Specify start and finish}         
           IF Symbol[WindowX, WindowY] = '#' {Indicates walls} 
           THEN
@@ -95,7 +95,7 @@ BEGIN {READ FILE}
     END; {READ FILE}
   IF ((StartX = 0) AND (StartY = 0)) OR ((FinishX = StartX) AND (FinishY = StartY))
   THEN
-    statusWay := 3;
+    statusWay := 4;
   CLOSE(fileLabyrinth) 
 END; {READING}
 
@@ -109,7 +109,7 @@ FUNCTION LetWaves(CountSteps: INTEGER): INTEGER;
 VAR
   WindowY, WindowX: INTEGER;
 BEGIN {WAVES}
-  IF statusWay <> 3 
+  IF statusWay < 2 
   THEN
     statusWay := 1;
   WHILE (Digit[FinishX, FinishY] = 0) AND (statusWay = 1) {WAVES}
@@ -233,10 +233,8 @@ BEGIN
   ELSE
     IF statusWay = 0
     THEN
-      WRITELN(fileExit, 'There is no way!!!') {If at the end there is no way} 
-    ELSE
-      WRITE(fileExit, 'ERROR'); {If the data is not correct}
-  IF statusWay <> 3 
+      WRITELN(fileExit, 'There is no way!!!'); {If at the end there is no way} 
+  IF statusWay < 2 
   THEN
     BEGIN
       Draw(@widthCell, @heightCell);
@@ -248,14 +246,32 @@ BEGIN
             BEGIN
               WRITE(fileExit, Symbol[WindowX, WindowY]);
               CASE Symbol[WindowX, WindowY] OF
-              '#': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLBLACK);
-              'O': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLORANGE);
-              '*': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLRED)
+                '#': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLBLACK);
+                'O': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLORANGE);
+                '*': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLRED)
               END
             END;  
           WRITELN(fileExit) 
-        END; {Print Result}
-    END;    
+        END {Print Result}
+    END
+  ELSE
+    CASE statusWay OF
+      2:  
+        BEGIN
+          WRITE('ERROR! YOU INTRODUCED MORE 2 COORDINATES');
+          WRITE(fileExit,'ERROR! YOU INTRODUCED MORE 2 COORDINATES')
+        END;  
+      3:
+        BEGIN
+          WRITE('ERROR! LABYRINTH HAVEN''T ONE-PIECE WALL');
+          WRITE(fileExit,'ERROR! LABYRINTH HAVEN''''T ONE-PIECE WALL')
+        END;
+      4:
+        BEGIN
+          WRITE('ERROR! YOU INTRODUCED 1 OR NOT COORDINATE');
+          WRITE(fileExit,'ERROR! YOU INTRODUCED 1 OR NOT COORDINATE')
+        END
+    END;
   CLOSE(fileExit)     
 END;
  
