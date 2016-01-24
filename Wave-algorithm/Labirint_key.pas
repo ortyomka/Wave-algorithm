@@ -2,7 +2,7 @@ PROGRAM Way(INPUT, OUTPUT);
 USES GraphABC;
 CONST S = 1001;
 VAR 
-  StartX, StartY, FinishX, FinishY, SizeX, SizeY, Steps: INTEGER;
+  StartX, StartY, FinishX, FinishY, SizeX, SizeY: INTEGER;
   statusWay: BYTE; {0 - No way, 1 - Labyrinth have way, 3 - ERROR}
   Digit: ARRAY [0 .. S, 0 .. S] OF INTEGER; {Array for processing}
   Symbol: ARRAY [0 .. S, 0 .. S] OF CHAR; {Array for save results}
@@ -143,7 +143,6 @@ BEGIN {WAVES}
       INC(CountSteps) {Count Steps}  
     END; {WAVES}
   CountSteps := CountSteps - 2; {Subtract movement at the beginning and at the end}
-  Steps := CountSteps; {Save resault}
   LetWaves := CountStepS
 END; {WAVES}
 
@@ -230,58 +229,29 @@ END;
 
 PROCEDURE Print;
 VAR
-  fileExit: TEXT;
   WindowX, WindowY, widthCell, heightCell: INTEGER;
 BEGIN
-  ASSIGN(fileExit, 'LABIRINT_EXIT.TXT');
-  REWRITE(fileExit);
-  Symbol[StartX, StartY] := 'O';
-  IF statusWay = 1 
-  THEN
-    WRITELN(fileExit, 'Shortest way is ', Steps) {If there is Digit the way}
-  ELSE
-    IF statusWay = 0
-    THEN
-      WRITELN(fileExit, 'There is no way!!!'); {If at the end there is no way} 
+  Symbol[StartX, StartY] := 'O'; 
   IF statusWay < 2 
   THEN
     BEGIN
       Draw(@widthCell, @heightCell);
       FOR WindowY := 0 TO SizeY {Print Result}
       DO
-        BEGIN
-          FOR WindowX := 0 TO SizeX
-          DO
-            BEGIN
-              WRITE(fileExit, Symbol[WindowX, WindowY]);
-              CASE Symbol[WindowX, WindowY] OF
-                '#': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLBLACK);
-                'O': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLORANGE);
-                '*': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLRED)
-              END
-            END;
-          WRITELN(fileExit) 
-        END {Print Result}
+        FOR WindowX := 0 TO SizeX
+        DO
+          CASE Symbol[WindowX, WindowY] OF
+            '#': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLBLACK);
+            'O': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLORANGE);
+            '*': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLRED)
+          END; {Print Result}
     END
   ELSE
     CASE statusWay OF
-      2:  
-        BEGIN
-          WRITE('ERROR! YOU INTRODUCED MORE 2 COORDINATES');
-          WRITE(fileExit,'ERROR! YOU INTRODUCED MORE 2 COORDINATES')
-        END;  
-      3:
-        BEGIN
-          WRITE('ERROR! LABYRINTH HAVEN''T ONE-PIECE WALL');
-          WRITE(fileExit,'ERROR! LABYRINTH HAVEN''''T ONE-PIECE WALL')
-        END;
-      4:
-        BEGIN
-          WRITE('ERROR! YOU INTRODUCED 1 OR NOT COORDINATE');
-          WRITE(fileExit,'ERROR! YOU INTRODUCED 1 OR NOT COORDINATE')
-        END
-    END;
-  CLOSE(fileExit)     
+      2: WRITE('ERROR! YOU INTRODUCED MORE 2 WAY''S POINT FINAL'); 
+      3: WRITE('ERROR! MAZE HAVEN''T ONE-PIECE WALL');
+      4: WRITE('ERROR! YOU INTRODUCED 1 OR NOT WAY''S POINT FINAL')
+    END     
 END;
  
 BEGIN
