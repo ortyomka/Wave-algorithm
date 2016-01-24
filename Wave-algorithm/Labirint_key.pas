@@ -1,4 +1,5 @@
 PROGRAM Way(INPUT, OUTPUT);
+USES GraphABC;
 CONST S = 1001;
 VAR 
   StartX, StartY, FinishX, FinishY, SizeX, SizeY, Steps: INTEGER;
@@ -203,14 +204,29 @@ BEGIN {WAY}
     END;   
 END; {WAY} 
 
+PROCEDURE Draw(cellWidth, cellHeight: ^INTEGER);
+VAR
+  borderNumber: INTEGER;
+BEGIN
+  MAXIMIZEWINDOW;
+  cellWidth^ := WINDOWWIDTH DIV (sizeX + 1);
+  cellHeight^ := WINDOWHEIGHT DIV (sizeY + 1);
+  FOR borderNumber := 0 TO (sizeY + 1)
+  DO
+    LINE(0, cellHeight^ * borderNumber, WINDOWWIDTH, cellHeight^ * borderNumber);
+  FOR borderNumber := 0 TO (sizeX + 1)
+  DO
+    LINE(cellWidth^ * borderNumber, 0, cellWidth^ * borderNumber, WINDOWHEIGHT)
+END;
+
 PROCEDURE Print;
 VAR
   fileExit: TEXT;
-  WindowX, WindowY: INTEGER;
+  WindowX, WindowY, widthCell, heightCell: INTEGER;
 BEGIN
   ASSIGN(fileExit, 'LABIRINT_EXIT.TXT');
   REWRITE(fileExit);
-  Symbol[StartX, StartY] := 'O'; 
+  Symbol[StartX, StartY] := 'O';
   IF statusWay = 1 
   THEN
     WRITELN(fileExit, 'Shortest way is ', Steps) {If there is Digit the way}
@@ -221,15 +237,25 @@ BEGIN
     ELSE
       WRITE(fileExit, 'ERROR'); {If the data is not correct}
   IF statusWay <> 3 
-  THEN      
-    FOR WindowY := 0 TO SizeY {Print Result}
-    DO
-      BEGIN
-        FOR WindowX := 0 TO SizeX
-        DO             
-          WRITE(fileExit, Symbol[WindowX, WindowY]);  
-        WRITELN(fileExit) 
-      END; {Print Result}
+  THEN
+    BEGIN
+      Draw(@widthCell, @heightCell);
+      FOR WindowY := 0 TO SizeY {Print Result}
+      DO
+        BEGIN
+          FOR WindowX := 0 TO SizeX
+          DO
+            BEGIN
+              WRITE(fileExit, Symbol[WindowX, WindowY]);
+              CASE Symbol[WindowX, WindowY] OF
+              '#': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLBLACK);
+              'O': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLORANGE);
+              '*': FLOODFILL(widthCell DIV 2 + widthCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLRED)
+              END
+            END;  
+          WRITELN(fileExit) 
+        END; {Print Result}
+    END;    
   CLOSE(fileExit)     
 END;
  
