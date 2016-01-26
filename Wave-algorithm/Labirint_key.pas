@@ -156,7 +156,7 @@ BEGIN
         fillingArray(windowX, windowY + 1, countSteps);
       IF Digit[windowX, windowY - 1] = 0
       THEN
-        fillingArray(windowX, windowY - 1, countSteps){Wave propagation}
+        fillingArray(windowX, windowY - 1, countSteps) {Wave propagation}
     END    
 END;
 
@@ -205,7 +205,7 @@ BEGIN
       ELSE
         IF Digit[finishX, finishY - 1] = CountSteps 
         THEN
-          firstWayCoordinates(finishX, finishY - 1, WayX, WayY);{Setting coordinate beginning of the path} 
+          firstWayCoordinates(finishX, finishY - 1, WayX, WayY); {Setting coordinate beginning of the path} 
 END;
 
 PROCEDURE minWay(CountSteps, WayX, WayY: ^INTEGER);
