@@ -7,28 +7,28 @@ VAR
   Digit: ARRAY [0 .. S, 0 .. S] OF INTEGER; {Array for processing}
   Symbol: ARRAY [0 .. S, 0 .. S] OF CHAR; {Array for save results}
   
-PROCEDURE instalSizeX(fileX: TEXT; sizeX: ^INTEGER);
+PROCEDURE instalSizeX(fileMaze: TEXT; sizeX: ^INTEGER);
 BEGIN
-  READ(fileX, Symbol[0, 0]); {INSTAL SizeX}
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(fileX))
+  READ(fileMaze, Symbol[0, 0]); {INSTAL SizeX}
+  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(fileMaze))
   DO
     BEGIN
-      READ(fileX, Symbol[0, 0]);
+      READ(fileMaze, Symbol[0, 0]);
       IF Symbol[0, 0] = '#'
       THEN
         INC(sizeX^)
     END; {INSTAL SizeX}   
 END;
 
-PROCEDURE instalSizeY(fileY: TEXT; sizeY: ^INTEGER);
+PROCEDURE instalSizeY(fileMaze: TEXT; sizeY: ^INTEGER);
 BEGIN
   Symbol[0, 0] := '#'; {INSTAL SizeY}
-  READLN(fileY);
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(fileY))
+  READLN(fileMaze);
+  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(fileMaze))
   DO
     BEGIN
-      READ(fileY, Symbol[0, 0]);
-      READLN(fileY);
+      READ(fileMaze, Symbol[0, 0]);
+      READLN(fileMaze);
       IF Symbol[0, 0] = '#'
       THEN
         INC(sizeY^)  
@@ -41,8 +41,8 @@ VAR
 BEGIN
   ASSIGN(fileLabyrinth, 'LABIRINT.TXT');
   RESET(fileLabyrinth);
-  instalX(fileLabyrinth, sizeX);
-  instalY(fileLabyrinth, sizeY);
+  instalSizeX(fileLabyrinth, sizeX);
+  instalSizeY(fileLabyrinth, sizeY);
   CLOSE(fileLabyrinth)
 END;
 
