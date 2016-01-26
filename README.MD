@@ -1,17 +1,17 @@
-Wave algoritm
+# Search shortest path in the maze
+This task, I decided with the help of the wave algorithm
 
-Wave algoritm is one of all bases algoritms
+You can enter any maze and you see shortest way, if maze have it.
+## INPUT DATA:
+  - Maze's walls mast be full
+  - Way's point must be only 2
 
-INPUT DATA:
+## Designations:
+- '#' - this is wall
+- ' ' - this is space
+- '*' - that point start or finish
 
-You can enter any maze, but you must follow some rules:
-1) Maze's walls must be whole
-2) Maze must have only 2 point start/finish
-
-Designations:
-'#' - this is wall
-' ' - this is space
-'*' - that point start or finish
-
-Created by Artyom Yurin, Lacyem 'Infotech', 2016
+Created by Yurin Artyom, Lacyem 'InfoTech', 2016  
 Under the direction of Nikita Yegorov
+
+
