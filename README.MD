@@ -1,5 +1,6 @@
-# **Search shortest path in the maze**
-This task, I decided with the help of the wave algorithm
+# **Wave Algorithm**
+
+Shortest path in the maze, I decided this task with the help of the wave algorithm
 
 You can enter any maze and you see shortest way, if maze have it.
 ### INPUT DATA:
