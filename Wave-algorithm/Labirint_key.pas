@@ -7,7 +7,7 @@ VAR
   Digit: ARRAY [0 .. S, 0 .. S] OF INTEGER; {Array for processing}
   Symbol: ARRAY [0 .. S, 0 .. S] OF CHAR; {Array for save results}
   
-PROCEDURE instalX(fileX: TEXT; sizeX: ^INTEGER);
+PROCEDURE instalSizeX(fileX: TEXT; sizeX: ^INTEGER);
 BEGIN
   READ(fileX, Symbol[0, 0]); {INSTAL SizeX}
   WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(fileX))
@@ -20,7 +20,7 @@ BEGIN
     END; {INSTAL SizeX}   
 END;
 
-PROCEDURE instalY(fileY: TEXT; sizeY: ^INTEGER);
+PROCEDURE instalSizeY(fileY: TEXT; sizeY: ^INTEGER);
 BEGIN
   Symbol[0, 0] := '#'; {INSTAL SizeY}
   READLN(fileY);
