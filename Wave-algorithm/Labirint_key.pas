@@ -7,11 +7,10 @@ VAR
   Digit: ARRAY [0 .. S, 0 .. S] OF INTEGER; {Array for processing}
   Symbol: ARRAY [0 .. S, 0 .. S] OF CHAR; {Array for save results}
   
-PROCEDURE Reading; {READING}
+PROCEDURE SizeMaze(sizeX, sizeY: ^INTEGER);
 VAR
   fileLabyrinth: TEXT;
-  WindowX, WindowY: INTEGER;  
-BEGIN {READ FILE}
+BEGIN
   ASSIGN(fileLabyrinth, 'LABIRINT.TXT');
   RESET(fileLabyrinth);
   READ(fileLabyrinth, Symbol[0, 0]); {INSTAL SizeX}
@@ -21,7 +20,7 @@ BEGIN {READ FILE}
       READ(fileLabyrinth, Symbol[0, 0]);
       IF Symbol[0, 0] = '#'
       THEN
-        INC(SizeX)
+        INC(sizeX^)
     END; {INSTAL SizeX} 
   Symbol[0, 0] := '#'; {INSTAL SizeY}
   READLN(fileLabyrinth);
@@ -32,11 +31,71 @@ BEGIN {READ FILE}
       READLN(fileLabyrinth);
       IF Symbol[0, 0] = '#'
       THEN
-        INC(SizeY)  
+        INC(sizeY^)  
     END; {INSTAL SizeY}
+  CLOSE(fileLabyrinth)
+END;
+
+PROCEDURE errorOneOrNotPoint(startX, startY, finishX, finishY: INTEGER; statusWay: ^BYTE);
+BEGIN
+  IF ((startX = 0) AND (startY = 0)) OR ((finishX = startX) AND (finishY = startY))
+  THEN
+    statusWay^ := 4 
+END;
+
+PROCEDURE errorWithWallDown(X, Y, currentValue,Border: INTEGER; statusWay: ^BYTE);
+BEGIN
+  IF (Symbol[X, Y] <> '#') AND (currentValue <= Border) {Check INTEGRITY BOX IN WindowY}
+  THEN
+    statusWay^ := 3 {Check INTEGRITY BOX IN WindowX}
+END;
+
+PROCEDURE errorWithWallUp(windowX, sizeX, windowY, sizeY: INTEGER; statusWay: ^BYTE);
+BEGIN
+  IF ((windowX > sizeX) OR (windowY > sizeY)) AND (Symbol[windowX, windowY] <> ' ') {CHECK FRAME}
+  THEN
+    statusWay^ := 3;
+END;
+
+PROCEDURE fillingSymbolArray(windowX, windowY: INTEGER; startX, startY, finishX, finishY: ^INTEGER; statusWay: ^BYTE);
+BEGIN
+  CASE Symbol[windowX, windowY] OF
+    '*': 
+      IF (startY^ = 0) AND (startX^ = 0) {Specify start}
+      THEN
+        BEGIN
+          startX^ := windowX;
+          startY^ := windowY;
+          Digit[startX^, startY^] := 1;
+          finishX^ := windowX;
+          finishY^ := windowY;
+          Symbol[startX^, startY^] := 'O'
+        END {Specify start}
+      ELSE
+        IF (finishX^ = startX^) AND (finishY^ = startY^) {Specify finish}
+        THEN
+          BEGIN 
+            finishX^ := windowX;
+            finishY^ := windowY;
+            Symbol[finishX^, finishY^] := 'O'
+          END {Specify finish}
+        ELSE
+          statusWay^ := 2; {ERROR} 
+    '#': Digit[windowX, windowY] := -1;
+    ' ': Digit[windowX, windowY] := 0
+  END
+END;
+
+PROCEDURE Reading(SizeX, SizeY, StartX, StartY, FinishX, FinishY: ^INTEGER; statusWay: ^BYTE); {READING}
+VAR
+  fileLabyrinth: TEXT;
+  WindowX, WindowY: INTEGER;  
+BEGIN {READ FILE}
+  SizeMaze(SizeX, SizeY);
+  ASSIGN(fileLabyrinth, 'LABIRINT.TXT');
   RESET(fileLabyrinth);  
-  StartY := 0;
-  StartX := 0;
+  StartY^ := 0;
+  StartX^ := 0;
   WindowY := 0;
   WHILE NOT EOF(fileLabyrinth)
   DO
@@ -46,56 +105,18 @@ BEGIN {READ FILE}
       DO
         BEGIN
           READ(fileLabyrinth, Symbol[WindowX, WindowY]);
-          IF (Symbol[WindowX, WindowY] = '*') {Specify start and finish}
+          fillingSymbolArray(WindowX, WindowY, StartX, StartY, FinishX, FinishY, statusWay);
+          errorWithWallUp(WindowX, SizeX^, WindowY, SizeY^, statusWay);
+          IF WindowY = SizeY^ {Check INTEGRITY BOX IN WindowX}
           THEN
-            BEGIN
-              IF (StartY = 0) AND (StartX = 0) {Specify start}
-              THEN
-                BEGIN
-                  StartX := WindowX;
-                  StartY := WindowY;
-                  Digit[StartX, StartY] := 1;
-                  FinishX := WindowX;
-                  FinishY := WindowY;
-                  Symbol[StartX, StartY] := 'O'
-                END {Specify start}
-              ELSE
-                IF (FinishX = StartX) AND (FinishY = StartY) {Specify finish}
-                THEN
-                  BEGIN 
-                    FinishX := WindowX;
-                    FinishY := WindowY;
-                    Symbol[FinishX, FinishY] := 'O'
-                  END {Specify finish}
-                ELSE
-                  statusWay := 2; {ERROR}  
-            END; {Specify start and finish}         
-          IF Symbol[WindowX, WindowY] = '#' {Indicates walls} 
-          THEN
-            Digit[WindowX, WindowY] := -1
-          ELSE {Indicates walls}
-            IF Symbol[WindowX, WindowY] = ' ' {Indicates spaces}
-            THEN
-              Digit[WindowX, WindowY] := 0; {Indicates spaces}
-          IF ((WindowX > SizeX) OR (WindowY > SizeY)) AND (Symbol[WindowX, WindowY] <> ' ') {CHECK FRAME}
-          THEN
-            statusWay := 3; {CHECK FRAME}
-          IF WindowY = SizeY {Check INTEGRITY BOX IN WindowX}
-          THEN
-            IF (Symbol[WindowX, SizeY] <> '#') AND (WindowX <= SizeX)
-            THEN
-              statusWay := 3; {Check INTEGRITY BOX IN WindowX}      
+            errorWithWallDown(WindowX, SizeY^, WindowX, SizeX^, statusWay);
           INC(WindowX)    
         END;  
       READLN(fileLabyrinth);
-      IF (Symbol[SizeX, WindowY] <> '#') AND (WindowY <= SizeY) {Check INTEGRITY BOX IN WindowY}
-      THEN
-        statusWay := 3; {Check INTEGRITY BOX IN WindowX}  
+      errorWithWallDown(SizeX^, WindowY, WindowY, SizeY^, statusWay);
       INC(WindowY)
     END; {READ FILE}
-  IF ((StartX = 0) AND (StartY = 0)) OR ((FinishX = StartX) AND (FinishY = StartY))
-  THEN
-    statusWay := 4;
+  errorOneOrNotPoint(StartX^, StartY^, FinishX^, FinishY^, statusWay);
   CLOSE(fileLabyrinth) 
 END; {READING}
 
@@ -103,6 +124,25 @@ PROCEDURE fillingArray(firstCoordinate, secondCoordinate, stepNumber: INTEGER);
 BEGIN
   Digit[firstCoordinate, secondCoordinate] := stepNumber;
   statusWay := 1
+END;
+PROCEDURE fillingDigitArray(windowX, windowY, countSteps: INTEGER);
+BEGIN
+  IF Digit[windowX, windowY] = CountSteps - 1
+  THEN
+    BEGIN
+      IF Digit[windowX + 1, windowY] = 0 {Wave propagation}
+      THEN                
+        fillingArray(windowX + 1, windowY, countSteps); {Right}
+      IF Digit[windowX - 1, windowY] = 0
+      THEN
+        fillingArray(windowX - 1, windowY, countSteps);
+      IF Digit[windowX, windowY + 1] = 0
+      THEN
+        fillingArray(windowX, windowY + 1, countSteps);
+      IF Digit[windowX, windowY - 1] = 0
+      THEN
+        fillingArray(windowX, windowY - 1, countSteps){Wave propagation}
+    END    
 END;
 
 FUNCTION LetWaves(CountSteps: INTEGER): INTEGER;
@@ -118,32 +158,13 @@ BEGIN {WAVES}
       statusWay := 0; {Check for occupancy}
       FOR WindowY := 0 TO SizeY 
       DO
-        BEGIN
-          FOR WindowX := 0 TO SizeX
-          DO
-            BEGIN
-              IF Digit[WindowX, WindowY] = CountSteps - 1
-              THEN
-                BEGIN
-                  IF Digit[WindowX + 1, WindowY] = 0 {Wave propagation}
-                  THEN                
-                    fillingArray(WindowX + 1, WindowY, CountSteps); {Right}
-                  IF Digit[WindowX - 1, WindowY] = 0
-                  THEN
-                    fillingArray(WindowX - 1, WindowY, CountSteps);
-                  IF Digit[WindowX, WindowY + 1] = 0
-                  THEN
-                    fillingArray(WindowX, WindowY + 1, CountSteps);
-                  IF Digit[WindowX, WindowY - 1] = 0
-                  THEN
-                    fillingArray(WindowX, WindowY - 1, CountSteps){Wave propagation} 
-                END  
-            END
-        END;
+        FOR WindowX := 0 TO SizeX
+        DO
+          fillingDigitArray(WindowX, WindowY, CountSteps);
       INC(CountSteps) {Count Steps}  
     END; {WAVES}
   CountSteps := CountSteps - 2; {Subtract movement at the beginning and at the end}
-  LetWaves := CountStepS
+  LetWaves := CountSteps
 END; {WAVES}
 
 PROCEDURE firstWayCoordinates(firstFinishCoordinate, secondFinishCoordinate: INTEGER; firstCoordinate, secondCoordinate: ^INTEGER);
@@ -153,7 +174,46 @@ BEGIN
   Symbol[firstCoordinate^, secondCoordinate^] := '*'
 END;
 
-PROCEDURE SearchWay;
+PROCEDURE instalCoordinates(finishX, finishY, countSteps: INTEGER; WayX, WayY: ^INTEGER);
+BEGIN
+  IF Digit[finishX + 1, finishY] = countSteps {Check the box next and sets the first coordinate}
+  THEN
+    firstWayCoordinates(finishX + 1, finishY, WayX, WayY) {Setting coordinate beginning of the path}
+  ELSE  
+    IF Digit[finishX - 1, finishY] = countSteps 
+    THEN
+      firstWayCoordinates(finishX - 1, finishY, WayX, WayY) {Setting coordinate beginning of the path} 
+    ELSE
+      IF Digit[finishX, finishY + 1] = CountSteps 
+      THEN
+        firstWayCoordinates(finishX, finishY + 1, WayX, WayY) {Setting coordinate beginning of the path}
+      ELSE
+        IF Digit[finishX, finishY - 1] = CountSteps 
+        THEN
+          firstWayCoordinates(finishX, finishY - 1, WayX, WayY);{Setting coordinate beginning of the path} 
+END;
+
+PROCEDURE minWay(CountSteps, WayX, WayY: ^INTEGER);
+BEGIN
+  DEC(CountSteps^);
+  IF Digit[WayX^ + 1, WayY^] = CountSteps^ {Check the box next and build the way}
+  THEN
+    firstWayCoordinates(WayX^ + 1, WayY^, WayX, WayY)
+  ELSE  
+    IF Digit[WayX^ - 1, WayY^] = CountSteps^ 
+    THEN
+      firstWayCoordinates(WayX^ - 1, WayY^, WayX, WayY)
+    ELSE
+      IF Digit[WayX^, WayY^ + 1] = CountSteps^ 
+      THEN
+        firstWayCoordinates(WayX^, WayY^ + 1, WayX, WayY)
+      ELSE
+        IF Digit[WayX^, WayY^ - 1] = CountSteps^ 
+        THEN
+          firstWayCoordinates(WayX^, WayY^ - 1, WayX, WayY)  
+END;
+
+PROCEDURE SearchWay(StartX, StartY, FinishX, FinishY: INTEGER);
 VAR
   CountSteps, WayX, WayY: INTEGER;   
 BEGIN {WAY}
@@ -164,63 +224,60 @@ BEGIN {WAY}
       IF (StartX <> FinishX) OR (StartY <> FinishY)
       THEN
         BEGIN
-          IF Digit[FinishX + 1, FinishY] = CountSteps {Check the box next and sets the first coordinate}
-          THEN
-            firstWayCoordinates(FinishX + 1, FinishY, @WayX, @WayY) {Setting coordinate beginning of the path}
-          ELSE  
-            IF Digit[FinishX - 1, FinishY] = CountSteps 
-            THEN
-              firstWayCoordinates(FinishX - 1, FinishY, @WayX, @WayY) {Setting coordinate beginning of the path} 
-            ELSE
-              IF Digit[FinishX, FinishY + 1] = CountSteps 
-              THEN
-                firstWayCoordinates(FinishX, FinishY + 1, @WayX, @WayY) {Setting coordinate beginning of the path}
-              ELSE
-                IF Digit[FinishX, FinishY - 1] = CountSteps 
-                THEN
-                  firstWayCoordinates(FinishX, FinishY - 1, @WayX, @WayY);{Setting coordinate beginning of the path}     
-            WHILE (Symbol[StartX, StartY] = 'O') AND (CountSteps >= 0)
-            DO
-              BEGIN
-                DEC(CountSteps);
-                IF Digit[WayX + 1, WayY] = CountSteps {Check the box next and build the way}
-                THEN
-                  firstWayCoordinates(WayX + 1, WayY, @WayX, @WayY)
-                ELSE  
-                  IF Digit[WayX - 1, WayY] = CountSteps 
-                  THEN
-                    firstWayCoordinates(WayX - 1, WayY, @WayX, @WayY)
-                  ELSE
-                    IF Digit[WayX, WayY + 1] = CountSteps 
-                    THEN
-                      firstWayCoordinates(WayX, WayY + 1, @WayX, @WayY)
-                    ELSE
-                      IF Digit[WayX, WayY - 1] = CountSteps 
-                      THEN
-                        firstWayCoordinates(WayX, WayY - 1, @WayX, @WayY)    
-              END
+          instalCoordinates(FinishX, FinishY, CountSteps, @WayX, @WayY);    
+          WHILE (Symbol[StartX, StartY] = 'O') AND (CountSteps >= 0)
+          DO
+            minWay(@CountSteps, @WayX, @WayY);
         END      
     END;   
 END; {WAY} 
 
-PROCEDURE Draw(cellHeight: ^INTEGER);
+PROCEDURE verticalLines(Height, Number, Size: INTEGER);
+BEGIN
+  FOR Number := 0 TO (Size + 1)
+  DO
+    LINE(0, Height * Number, WINDOWWIDTH, Height * Number); 
+END;
+
+PROCEDURE horizontalLines(Height, Number, Size: INTEGER);
+BEGIN
+  FOR Number := 0 TO (size + 1)
+  DO
+    LINE(Height * Number, 0, Height * Number, WINDOWHEIGHT)
+END;
+
+PROCEDURE Draw(cellHeight, SizeX, SizeY: ^INTEGER);
 VAR
   borderNumber: INTEGER;
 BEGIN
-  cellHeight^ := (SCREENHEIGHT DIV 2) DIV (sizeY + 1);
+  cellHeight^ := (SCREENHEIGHT DIV 2) DIV (SizeY^ + 1);
   SETWINDOWTOP(0);
   SETWINDOWLEFT(0);
-  SETWINDOWSIZE(cellHeight^ * (sizeX + 1), cellHeight^ * (sizeY + 1));
+  SETWINDOWSIZE(cellHeight^ * (sizeX^ + 1), cellHeight^ * (sizeY^ + 1));
   WINDOW.IsFixedSize := true;
-  FOR borderNumber := 0 TO (sizeY + 1)
-  DO
-    LINE(0, cellHeight^ * borderNumber, WINDOWWIDTH, cellHeight^ * borderNumber);
-  FOR borderNumber := 0 TO (sizeX + 1)
-  DO
-    LINE(cellHeight^ * borderNumber, 0, cellHeight^ * borderNumber, WINDOWHEIGHT)
+  verticalLines(cellHeight^, borderNumber, SizeY^);
+  horizontalLines(cellHeight^, borderNumber, SizeX^)
 END;
 
-PROCEDURE Print;
+PROCEDURE paint(WindowX, WindowY, height: INTEGER);
+BEGIN
+  CASE Symbol[WindowX, WindowY] OF
+    '#': FLOODFILL(height DIV 2 + height * WindowX, height DIV 2 + height * WindowY, CLBLACK);
+    'O': FLOODFILL(height DIV 2 + height * WindowX, height DIV 2 + height * WindowY, CLORANGE);
+    '*': FLOODFILL(height DIV 2 + height * WindowX, height DIV 2 + height * WindowY, CLRED)
+  END;
+END;
+
+PROCEDURE writeErrors(errorsNumber: BYTE);
+BEGIN
+  CASE errorsNumber OF
+      2: WRITE('ERROR! YOU INTRODUCED MORE 2 WAY''S POINT FINAL'); 
+      3: WRITE('ERROR! MAZE HAVEN''T ONE-PIECE WALL');
+      4: WRITE('ERROR! YOU INTRODUCED 1 OR NOT WAY''S POINT FINAL')
+    END   
+END;
+
+PROCEDURE Print(statusWay: BYTE; SizeX, SizeY: ^INTEGER);
 VAR
   WindowX, WindowY, heightCell: INTEGER;
 BEGIN
@@ -228,27 +285,19 @@ BEGIN
   IF statusWay < 2 
   THEN
     BEGIN
-      Draw(@heightCell);
-      FOR WindowY := 0 TO SizeY {Print Result}
+      Draw(@heightCell, SizeX, SizeY);
+      FOR WindowY := 0 TO SizeY^ {Print Result}
       DO
-        FOR WindowX := 0 TO SizeX
+        FOR WindowX := 0 TO SizeX^
         DO
-          CASE Symbol[WindowX, WindowY] OF
-            '#': FLOODFILL(heightCell DIV 2 + heightCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLBLACK);
-            'O': FLOODFILL(heightCell DIV 2 + heightCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLORANGE);
-            '*': FLOODFILL(heightCell DIV 2 + heightCell * WindowX, heightCell DIV 2 + heightCell * WindowY, CLRED)
-          END; {Print Result}
+          paint(WindowX, WindowY, heightCell) {Print Result}
     END
   ELSE
-    CASE statusWay OF
-      2: WRITE('ERROR! YOU INTRODUCED MORE 2 WAY''S POINT FINAL'); 
-      3: WRITE('ERROR! MAZE HAVEN''T ONE-PIECE WALL');
-      4: WRITE('ERROR! YOU INTRODUCED 1 OR NOT WAY''S POINT FINAL')
-    END     
+    writeErrors(statusWay)  
 END;
  
 BEGIN
-  Reading;     
-  SearchWay;
-  Print
+  Reading(@SizeX, @SizeY, @StartX, @StartY, @FinishX, @FinishY, @StatusWay);     
+  SearchWay(StartX, StartY, FinishX, FinishY);
+  Print(StatusWay, @SizeX, @SizeY)
 END. {WAY}
