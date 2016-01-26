@@ -11,7 +11,5 @@ You can enter any maze and you see shortest way, if maze have it.
 - ' ' - this is space
 - '*' - that point start or finish
 
-Created by Yurin Artyom, Lacyem 'InfoTech', 2016  
-Under the direction of Nikita Yegorov
-
-
+> Created by Yurin Artyom, Lacyem 'InfoTech', 2016  
+> Under the direction of Nikita Yegorov
