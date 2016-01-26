@@ -7,32 +7,42 @@ VAR
   Digit: ARRAY [0 .. S, 0 .. S] OF INTEGER; {Array for processing}
   Symbol: ARRAY [0 .. S, 0 .. S] OF CHAR; {Array for save results}
   
+PROCEDURE instalX(fileX: TEXT; sizeX: ^INTEGER);
+BEGIN
+  READ(fileX, Symbol[0, 0]); {INSTAL SizeX}
+  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(fileX))
+  DO
+    BEGIN
+      READ(fileX, Symbol[0, 0]);
+      IF Symbol[0, 0] = '#'
+      THEN
+        INC(sizeX^)
+    END; {INSTAL SizeX}   
+END;
+
+PROCEDURE instalY(fileY: TEXT; sizeY: ^INTEGER);
+BEGIN
+  Symbol[0, 0] := '#'; {INSTAL SizeY}
+  READLN(fileY);
+  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(fileY))
+  DO
+    BEGIN
+      READ(fileY, Symbol[0, 0]);
+      READLN(fileY);
+      IF Symbol[0, 0] = '#'
+      THEN
+        INC(sizeY^)  
+    END; {INSTAL SizeY}
+END;
+
 PROCEDURE SizeMaze(sizeX, sizeY: ^INTEGER);
 VAR
   fileLabyrinth: TEXT;
 BEGIN
   ASSIGN(fileLabyrinth, 'LABIRINT.TXT');
   RESET(fileLabyrinth);
-  READ(fileLabyrinth, Symbol[0, 0]); {INSTAL SizeX}
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(fileLabyrinth))
-  DO
-    BEGIN
-      READ(fileLabyrinth, Symbol[0, 0]);
-      IF Symbol[0, 0] = '#'
-      THEN
-        INC(sizeX^)
-    END; {INSTAL SizeX} 
-  Symbol[0, 0] := '#'; {INSTAL SizeY}
-  READLN(fileLabyrinth);
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(fileLabyrinth))
-  DO
-    BEGIN
-      READ(fileLabyrinth, Symbol[0, 0]);
-      READLN(fileLabyrinth);
-      IF Symbol[0, 0] = '#'
-      THEN
-        INC(sizeY^)  
-    END; {INSTAL SizeY}
+  instalX(fileLabyrinth, sizeX);
+  instalY(fileLabyrinth, sizeY);
   CLOSE(fileLabyrinth)
 END;
 
@@ -86,6 +96,29 @@ BEGIN
   END
 END;
 
+PROCEDURE fillingArrays(maze: TEXT; WindowX, WindowY: INTEGER; StartX, StartY, FinishX, FinishY, SizeX, SizeY: ^INTEGER; statusWay: ^BYTE);
+BEGIN
+  WHILE NOT EOF(maze)
+  DO
+    BEGIN
+      WindowX := 0;
+      WHILE NOT EOLN(maze)
+      DO
+        BEGIN
+          READ(maze, Symbol[WindowX, WindowY]);
+          fillingSymbolArray(WindowX, WindowY, StartX, StartY, FinishX, FinishY, statusWay);
+          errorWithWallUp(WindowX, SizeX^, WindowY, SizeY^, statusWay);
+          IF WindowY = SizeY^ {Check INTEGRITY BOX IN WindowX}
+          THEN
+            errorWithWallDown(WindowX, SizeY^, WindowX, SizeX^, statusWay);
+          INC(WindowX)    
+        END;  
+      READLN(maze);
+      errorWithWallDown(SizeX^, WindowY, WindowY, SizeY^, statusWay);
+      INC(WindowY)
+    END; {READ FILE}
+END;
+
 PROCEDURE Reading(SizeX, SizeY, StartX, StartY, FinishX, FinishY: ^INTEGER; statusWay: ^BYTE); {READING}
 VAR
   fileLabyrinth: TEXT;
@@ -97,25 +130,7 @@ BEGIN {READ FILE}
   StartY^ := 0;
   StartX^ := 0;
   WindowY := 0;
-  WHILE NOT EOF(fileLabyrinth)
-  DO
-    BEGIN
-      WindowX := 0;
-      WHILE NOT EOLN(fileLabyrinth)
-      DO
-        BEGIN
-          READ(fileLabyrinth, Symbol[WindowX, WindowY]);
-          fillingSymbolArray(WindowX, WindowY, StartX, StartY, FinishX, FinishY, statusWay);
-          errorWithWallUp(WindowX, SizeX^, WindowY, SizeY^, statusWay);
-          IF WindowY = SizeY^ {Check INTEGRITY BOX IN WindowX}
-          THEN
-            errorWithWallDown(WindowX, SizeY^, WindowX, SizeX^, statusWay);
-          INC(WindowX)    
-        END;  
-      READLN(fileLabyrinth);
-      errorWithWallDown(SizeX^, WindowY, WindowY, SizeY^, statusWay);
-      INC(WindowY)
-    END; {READ FILE}
+  fillingArrays(fileLabyrinth, WindowX, WindowY, StartX, StartY, FinishX, FinishY, SizeX, SizeY, statusWay);
   errorOneOrNotPoint(StartX^, StartY^, FinishX^, FinishY^, statusWay);
   CLOSE(fileLabyrinth) 
 END; {READING}
