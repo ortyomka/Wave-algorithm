@@ -1,140 +1,14 @@
 PROGRAM Way(INPUT, OUTPUT);
-USES GraphABC;
+USES GraphABC, READING;
 CONST S = 1001;
+TYPE intDig = ARRAY [0 .. S, 0 .. S] OF INTEGER;
+TYPE intSym = ARRAY [0 .. S, 0 .. S] OF CHAR;
 VAR 
   StartX, StartY, FinishX, FinishY, SizeX, SizeY: INTEGER;
   statusWay: BYTE; {0 - No way, 1 - Labyrinth have way, 3 - ERROR}
   Digit: ARRAY [0 .. S, 0 .. S] OF INTEGER; {Array for processing}
   Symbol: ARRAY [0 .. S, 0 .. S] OF CHAR; {Array for save results}
-  
-PROCEDURE instalSizeX(fileMaze: TEXT; sizeX: ^INTEGER);
-BEGIN
-  READ(fileMaze, Symbol[0, 0]); {INSTAL SizeX}
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOLN(fileMaze))
-  DO
-    BEGIN
-      READ(fileMaze, Symbol[0, 0]);
-      IF Symbol[0, 0] = '#'
-      THEN
-        INC(sizeX^)
-    END; {INSTAL SizeX}   
-END;
-
-PROCEDURE instalSizeY(fileMaze: TEXT; sizeY: ^INTEGER);
-BEGIN
-  Symbol[0, 0] := '#'; {INSTAL SizeY}
-  READLN(fileMaze);
-  WHILE (Symbol[0, 0] = '#') AND (NOT EOF(fileMaze))
-  DO
-    BEGIN
-      READ(fileMaze, Symbol[0, 0]);
-      READLN(fileMaze);
-      IF Symbol[0, 0] = '#'
-      THEN
-        INC(sizeY^)  
-    END; {INSTAL SizeY}
-END;
-
-PROCEDURE SizeMaze(sizeX, sizeY: ^INTEGER);
-VAR
-  fileLabyrinth: TEXT;
-BEGIN
-  ASSIGN(fileLabyrinth, 'LABIRINT.TXT');
-  RESET(fileLabyrinth);
-  instalSizeX(fileLabyrinth, sizeX);
-  instalSizeY(fileLabyrinth, sizeY);
-  CLOSE(fileLabyrinth)
-END;
-
-PROCEDURE errorOneOrNotPoint(startX, startY, finishX, finishY: INTEGER; statusWay: ^BYTE);
-BEGIN
-  IF ((startX = 0) AND (startY = 0)) OR ((finishX = startX) AND (finishY = startY))
-  THEN
-    statusWay^ := 4 
-END;
-
-PROCEDURE errorWithWallDown(X, Y, currentValue,Border: INTEGER; statusWay: ^BYTE);
-BEGIN
-  IF (Symbol[X, Y] <> '#') AND (currentValue <= Border) {Check INTEGRITY BOX IN WindowY}
-  THEN
-    statusWay^ := 3 {Check INTEGRITY BOX IN WindowX}
-END;
-
-PROCEDURE errorWithWallUp(windowX, sizeX, windowY, sizeY: INTEGER; statusWay: ^BYTE);
-BEGIN
-  IF ((windowX > sizeX) OR (windowY > sizeY)) AND (Symbol[windowX, windowY] <> ' ') {CHECK FRAME}
-  THEN
-    statusWay^ := 3;
-END;
-
-PROCEDURE fillingSymbolArray(windowX, windowY: INTEGER; startX, startY, finishX, finishY: ^INTEGER; statusWay: ^BYTE);
-BEGIN
-  CASE Symbol[windowX, windowY] OF
-    '*': 
-      IF (startY^ = 0) AND (startX^ = 0) {Specify start}
-      THEN
-        BEGIN
-          startX^ := windowX;
-          startY^ := windowY;
-          Digit[startX^, startY^] := 1;
-          finishX^ := windowX;
-          finishY^ := windowY;
-          Symbol[startX^, startY^] := 'O'
-        END {Specify start}
-      ELSE
-        IF (finishX^ = startX^) AND (finishY^ = startY^) {Specify finish}
-        THEN
-          BEGIN 
-            finishX^ := windowX;
-            finishY^ := windowY;
-            Symbol[finishX^, finishY^] := 'O'
-          END {Specify finish}
-        ELSE
-          statusWay^ := 2; {ERROR} 
-    '#': Digit[windowX, windowY] := -1;
-    ' ': Digit[windowX, windowY] := 0
-  END
-END;
-
-PROCEDURE fillingArrays(maze: TEXT; WindowX, WindowY: INTEGER; StartX, StartY, FinishX, FinishY, SizeX, SizeY: ^INTEGER; statusWay: ^BYTE);
-BEGIN
-  WHILE NOT EOF(maze)
-  DO
-    BEGIN
-      WindowX := 0;
-      WHILE NOT EOLN(maze)
-      DO
-        BEGIN
-          READ(maze, Symbol[WindowX, WindowY]);
-          fillingSymbolArray(WindowX, WindowY, StartX, StartY, FinishX, FinishY, statusWay);
-          errorWithWallUp(WindowX, SizeX^, WindowY, SizeY^, statusWay);
-          IF WindowY = SizeY^ {Check INTEGRITY BOX IN WindowX}
-          THEN
-            errorWithWallDown(WindowX, SizeY^, WindowX, SizeX^, statusWay);
-          INC(WindowX)    
-        END;  
-      READLN(maze);
-      errorWithWallDown(SizeX^, WindowY, WindowY, SizeY^, statusWay);
-      INC(WindowY)
-    END; {READ FILE}
-END;
-
-PROCEDURE Reading(SizeX, SizeY, StartX, StartY, FinishX, FinishY: ^INTEGER; statusWay: ^BYTE); {READING}
-VAR
-  fileLabyrinth: TEXT;
-  WindowX, WindowY: INTEGER;  
-BEGIN {READ FILE}
-  SizeMaze(SizeX, SizeY);
-  ASSIGN(fileLabyrinth, 'LABIRINT.TXT');
-  RESET(fileLabyrinth);  
-  StartY^ := 0;
-  StartX^ := 0;
-  WindowY := 0;
-  fillingArrays(fileLabyrinth, WindowX, WindowY, StartX, StartY, FinishX, FinishY, SizeX, SizeY, statusWay);
-  errorOneOrNotPoint(StartX^, StartY^, FinishX^, FinishY^, statusWay);
-  CLOSE(fileLabyrinth) 
-END; {READING}
-
+{module 2}
 PROCEDURE fillingArray(firstCoordinate, secondCoordinate, stepNumber: INTEGER);
 BEGIN
   Digit[firstCoordinate, secondCoordinate] := stepNumber;
@@ -246,7 +120,8 @@ BEGIN {WAY}
         END      
     END;   
 END; {WAY} 
-
+{module 2}
+{module 3}
 PROCEDURE verticalLines(Height, Number, Size: INTEGER);
 BEGIN
   FOR Number := 0 TO (Size + 1)
@@ -310,9 +185,9 @@ BEGIN
   ELSE
     writeErrors(statusWay)  
 END;
- 
+{module 3} 
 BEGIN
-  Reading(@SizeX, @SizeY, @StartX, @StartY, @FinishX, @FinishY, @StatusWay);     
+  ReadingFile(Digit, Symbol, @SizeX, @SizeY, @StartX, @StartY, @FinishX, @FinishY, @StatusWay);     
   SearchWay(StartX, StartY, FinishX, FinishY);
   Print(StatusWay, @SizeX, @SizeY)
 END. {WAY}
